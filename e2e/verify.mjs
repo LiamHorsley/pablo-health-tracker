@@ -35,6 +35,12 @@ async function main() {
   const browser = await chromium.launch()
   const page = await browser.newPage()
 
+  page.on('console', (msg) => {
+    if (msg.type() === 'error') console.log(`PAGE CONSOLE ERROR: ${msg.text()}`)
+  })
+  page.on('pageerror', (err) => console.log(`PAGE EXCEPTION: ${err.message}`))
+  page.on('requestfailed', (req) => console.log(`REQUEST FAILED: ${req.url()} (${req.failure()?.errorText})`))
+
   try {
     console.log(`Opening ${PREVIEW_URL}`)
     await page.goto(PREVIEW_URL, { waitUntil: 'networkidle' })
