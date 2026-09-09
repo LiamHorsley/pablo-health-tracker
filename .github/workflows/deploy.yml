@@ -31,7 +31,12 @@ jobs:
 
       - name: Install Playwright browser
         run: |
-          npx playwright install --with-deps chromium
+          for attempt in 1 2 3; do
+            npx playwright install --with-deps chromium && exit 0
+            echo "Playwright browser install failed (attempt $attempt), retrying..."
+            sleep 10
+          done
+          exit 1
 
       - name: Install firebase-tools
         run: |
