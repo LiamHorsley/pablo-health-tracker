@@ -4,6 +4,7 @@ import {
   createUserWithEmailAndPassword,
 } from 'firebase/auth'
 import { auth } from './firebase.js'
+import pabloPhoto from './pablo.jpg'
 
 export default function Login() {
   const [mode, setMode] = useState('signin') // 'signin' | 'signup'
@@ -32,7 +33,7 @@ export default function Login() {
   return (
     <div className="login-screen">
       <div className="login-card">
-        <div className="login-emoji">🐾</div>
+        <img src={pabloPhoto} alt="Pablo" className="login-logo" />
         <h1>Pablo's Tracker</h1>
         <div className="login-tabs">
           <button

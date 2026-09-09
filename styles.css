@@ -1,32 +1,32 @@
 :root {
-  --bg: #f6f4ef;
+  --bg: #f2f4f1;
   --surface: #ffffff;
-  --border: #e4ddd0;
-  --text: #2a251d;
-  --text-muted: #7a7266;
-  --accent: #b5651d;
-  --accent-strong: #8f4e14;
+  --border: #dbe1d8;
+  --text: #20241f;
+  --text-muted: #656e62;
+  --accent: #2e5233;
+  --accent-strong: #244027;
   --accent-contrast: #ffffff;
   --danger: #b23b3b;
-  --good: #4b7b4f;
-  --track: #ece6d8;
-  --shadow: 0 1px 2px rgba(40, 30, 10, 0.06), 0 1px 8px rgba(40, 30, 10, 0.04);
+  --good: #3c7a43;
+  --track: #e3e7e1;
+  --shadow: 0 1px 2px rgba(20, 25, 20, 0.06), 0 1px 8px rgba(20, 25, 20, 0.05);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #17140f;
-    --surface: #221e17;
-    --border: #362f24;
-    --text: #f1ece0;
-    --text-muted: #a89d89;
-    --accent: #e0985a;
-    --accent-strong: #f0ac72;
-    --accent-contrast: #201505;
+    --bg: #14170f;
+    --surface: #1c2018;
+    --border: #2e3329;
+    --text: #edf0ea;
+    --text-muted: #9aa396;
+    --accent: #6fae7a;
+    --accent-strong: #8bc797;
+    --accent-contrast: #0f150f;
     --danger: #e08080;
-    --good: #82c187;
-    --track: #2c2619;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 8px rgba(0, 0, 0, 0.25);
+    --good: #7fbf8a;
+    --track: #262b22;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 1px 8px rgba(0, 0, 0, 0.3);
   }
 }
 
@@ -86,6 +86,16 @@ select {
 .top-bar-title {
   font-weight: 700;
   font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .signout-btn {
@@ -162,8 +172,13 @@ select {
   text-align: center;
 }
 
-.login-emoji {
-  font-size: 2.5rem;
+.login-logo {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--accent);
+  box-shadow: var(--shadow);
 }
 
 .login-card h1 {
