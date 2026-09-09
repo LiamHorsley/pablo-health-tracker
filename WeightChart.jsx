@@ -9,7 +9,8 @@ const PAD_BOTTOM = 24
 
 // entries: [{ date: 'YYYY-MM-DD', weightKg }], ascending by date.
 // rangeStart/rangeEnd: ISO date strings bounding the x-axis.
-export default function WeightChart({ entries, rangeStart, rangeEnd }) {
+// goal: optional goal weight in kg, drawn as a dashed reference line.
+export default function WeightChart({ entries, rangeStart, rangeEnd, goal }) {
   if (entries.length === 0) {
     return <p className="empty-state">No weight logged in this range yet.</p>
   }
@@ -18,7 +19,7 @@ export default function WeightChart({ entries, rangeStart, rangeEnd }) {
   const endMs = fromISO(rangeEnd).getTime()
   const span = Math.max(1, endMs - startMs)
 
-  const values = entries.map((e) => e.weightKg)
+  const values = goal != null ? [...entries.map((e) => e.weightKg), goal] : entries.map((e) => e.weightKg)
   let min = Math.min(...values)
   let max = Math.max(...values)
   if (min === max) {
@@ -57,6 +58,10 @@ export default function WeightChart({ entries, rangeStart, rangeEnd }) {
           </text>
         </g>
       ))}
+
+      {goal != null && (
+        <line x1={PAD_LEFT} x2={WIDTH - PAD_RIGHT} y1={y(goal)} y2={y(goal)} className="chart-target-line" />
+      )}
 
       <path d={path} className="chart-line" fill="none" />
 

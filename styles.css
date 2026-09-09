@@ -484,6 +484,39 @@ select {
   min-height: 44px;
 }
 
+.add-food-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  padding-top: 8px;
+}
+
+.add-food-row .food-select {
+  width: 100%;
+}
+
+.quantity-quick-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.quick-btn {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  font-size: 0.85rem;
+  min-height: 36px;
+}
+
+.quick-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+
 .preview-calories {
   color: var(--text-muted);
   font-size: 0.85rem;
@@ -614,6 +647,43 @@ select {
   border-radius: 10px;
   background: var(--bg);
   min-height: 44px;
+}
+
+.bulk-toggle {
+  margin-top: 4px;
+  text-align: left;
+}
+
+.bulk-add-form {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bulk-add-form textarea {
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  resize: vertical;
+}
+
+.field-label code {
+  background: var(--track);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+
+.bulk-preview {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
 }
 
 /* ---------- Trends ---------- */

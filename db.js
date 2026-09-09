@@ -155,7 +155,7 @@ export function deleteWeightEntry(uid, entryId) {
   return deleteDoc(doc(db, 'users', uid, 'weightEntries', entryId))
 }
 
-// ---------- Settings (calorie target) ----------
+// ---------- Settings (calorie target, goal weight) ----------
 
 const SETTINGS_DOC = 'app'
 
@@ -167,4 +167,14 @@ export function watchSettings(uid, callback) {
 
 export async function setCalorieTarget(uid, calorieTarget) {
   await setDoc(doc(db, 'users', uid, 'settings', SETTINGS_DOC), { calorieTarget }, { merge: true })
+}
+
+export async function setGoalWeight(uid, goalWeightKg) {
+  await setDoc(doc(db, 'users', uid, 'settings', SETTINGS_DOC), { goalWeightKg }, { merge: true })
+}
+
+// ---------- Bulk food import (paste multiple at once) ----------
+
+export async function addFoodsBulk(uid, foods) {
+  await Promise.all(foods.map((food) => addFood(uid, food)))
 }

@@ -48,7 +48,7 @@ export default function TrendsView({ uid }) {
 
       <section className="card">
         <h2 className="card-title">Weight</h2>
-        <WeightChart entries={weightEntries} rangeStart={rangeStart} rangeEnd={rangeEnd} />
+        <WeightChart entries={weightEntries} rangeStart={rangeStart} rangeEnd={rangeEnd} goal={settings.goalWeightKg} />
       </section>
 
       <section className="card">

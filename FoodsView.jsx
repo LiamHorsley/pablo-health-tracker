@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import Stepper from './Stepper.jsx'
-import { watchFoods, addFood, updateFood, deleteFood } from './db.js'
+import { watchFoods, addFood, updateFood, deleteFood, addFoodsBulk } from './db.js'
 
 export default function FoodsView({ uid }) {
   const [foods, setFoods] = useState([])
@@ -25,6 +25,7 @@ export default function FoodsView({ uid }) {
         )}
 
         <AddFoodForm onAdd={(food) => addFood(uid, food)} />
+        <BulkAddFoods onAddAll={(newFoods) => addFoodsBulk(uid, newFoods)} />
       </section>
     </div>
   )
@@ -150,4 +151,96 @@ function AddFoodForm({ onAdd }) {
       </button>
     </div>
   )
+}
+
+const BULK_PLACEHOLDER = `Chicken Pate, 100, g, 177.8
+Treat Ball, 1, ball, 40
+Butternut Box, 1, pack, 180`
+
+function BulkAddFoods({ onAddAll }) {
+  const [open, setOpen] = useState(false)
+  const [text, setText] = useState('')
+  const [error, setError] = useState('')
+
+  const parsed = parseBulkLines(text)
+
+  function handleAddAll() {
+    if (parsed.foods.length === 0) {
+      setError('No valid lines to add yet — check the format below.')
+      return
+    }
+    onAddAll(parsed.foods)
+    setText('')
+    setError('')
+    setOpen(false)
+  }
+
+  if (!open) {
+    return (
+      <button type="button" className="link-btn bulk-toggle" onClick={() => setOpen(true)}>
+        + Add several foods at once (paste a list)
+      </button>
+    )
+  }
+
+  return (
+    <div className="bulk-add-form">
+      <label className="field-label" htmlFor="bulk-foods">
+        One food per line: <code>name, amount, unit, calories</code>
+      </label>
+      <textarea
+        id="bulk-foods"
+        rows={5}
+        placeholder={BULK_PLACEHOLDER}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+      />
+      {text.trim() && (
+        <p className="bulk-preview">
+          {parsed.foods.length} food{parsed.foods.length === 1 ? '' : 's'} ready to add
+          {parsed.errors.length > 0 && `, ${parsed.errors.length} line(s) couldn't be read`}
+        </p>
+      )}
+      {error && <p className="login-error">{error}</p>}
+      <div className="add-row">
+        <button type="button" className="btn btn-primary" onClick={handleAddAll}>
+          + Add all
+        </button>
+        <button
+          type="button"
+          className="btn btn-small"
+          onClick={() => {
+            setOpen(false)
+            setText('')
+            setError('')
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function parseBulkLines(text) {
+  const foods = []
+  const errors = []
+  for (const rawLine of text.split('\n')) {
+    const line = rawLine.trim()
+    if (!line) continue
+    const parts = line.split(',').map((p) => p.trim())
+    if (parts.length !== 4) {
+      errors.push(line)
+      continue
+    }
+    const [name, amountStr, unit, caloriesStr] = parts
+    const referenceAmount = parseFloat(amountStr)
+    const calories = parseFloat(caloriesStr)
+    if (!name || !unit || Number.isNaN(referenceAmount) || Number.isNaN(calories)) {
+      errors.push(line)
+      continue
+    }
+    foods.push({ name, referenceAmount, referenceUnit: unit, calories })
+  }
+  return { foods, errors }
 }

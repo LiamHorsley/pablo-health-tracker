@@ -6,6 +6,7 @@ import {
   watchFoods,
   watchSettings,
   setCalorieTarget,
+  setGoalWeight,
   watchFoodEntriesForDate,
   addFoodEntry,
   deleteFoodEntry,
@@ -19,6 +20,13 @@ import {
 
 const EXERCISE_TYPES = ['Walk', 'Run', 'Play', 'Training', 'Other']
 const INTENSITIES = ['Low', 'Medium', 'High']
+const QUANTITY_FRACTIONS = [
+  { label: '¼', value: 0.25 },
+  { label: '⅓', value: 1 / 3 },
+  { label: '½', value: 0.5 },
+  { label: '¾', value: 0.75 },
+  { label: '1 whole', value: 1 },
+]
 
 export default function TodayView({ uid, onGoToFoods }) {
   const [date, setDate] = useState(todayISO())
@@ -48,6 +56,7 @@ export default function TodayView({ uid, onGoToFoods }) {
         target={settings.calorieTarget}
         onSetTarget={(v) => setCalorieTarget(uid, v)}
         latestWeightKg={latestWeight?.weightKg}
+        goalWeightKg={settings.goalWeightKg}
       />
 
       <FoodLogCard
@@ -69,8 +78,10 @@ export default function TodayView({ uid, onGoToFoods }) {
         isToday={isToday}
         date={date}
         latestWeight={latestWeight}
+        goalWeightKg={settings.goalWeightKg}
         onAdd={(weightKg) => addWeightEntry(uid, { date, weightKg })}
         onDeleteLatest={() => latestWeight && deleteWeightEntry(uid, latestWeight.id)}
+        onSetGoalWeight={(v) => setGoalWeight(uid, v)}
       />
     </div>
   )
@@ -97,7 +108,15 @@ function DateNav({ date, onChange }) {
   )
 }
 
-function CalorieSummaryCard({ totalCalories, target, onSetTarget, latestWeightKg }) {
+function defaultGoalId(currentWeightKg, goalWeightKg) {
+  if (currentWeightKg == null || goalWeightKg == null) return 'typical'
+  const diff = currentWeightKg - goalWeightKg
+  if (diff > 0.3) return 'loss'
+  if (diff < -0.3) return 'gain'
+  return 'typical'
+}
+
+function CalorieSummaryCard({ totalCalories, target, onSetTarget, latestWeightKg, goalWeightKg }) {
   const [editing, setEditing] = useState(false)
   const [draftTarget, setDraftTarget] = useState(target || 800)
   const [showCalculator, setShowCalculator] = useState(false)
@@ -166,7 +185,14 @@ function CalorieSummaryCard({ totalCalories, target, onSetTarget, latestWeightKg
           </div>
 
           {!showCalculator ? (
-            <button type="button" className="link-btn" onClick={() => setShowCalculator(true)}>
+            <button
+              type="button"
+              className="link-btn"
+              onClick={() => {
+                setCalcGoal(defaultGoalId(latestWeightKg, goalWeightKg))
+                setShowCalculator(true)
+              }}
+            >
               or calculate a suggested target from Pablo's weight
             </button>
           ) : (
@@ -185,6 +211,12 @@ function CalorieSummaryCard({ totalCalories, target, onSetTarget, latestWeightKg
                   ))}
                 </select>
               </label>
+              {goalWeightKg != null && (
+                <p className="bulk-preview">
+                  Pablo's goal weight is set to {goalWeightKg} kg{latestWeightKg != null && ` (currently ${latestWeightKg} kg)`} —
+                  goal pre-selected based on that.
+                </p>
+              )}
               <p className="calculator-result">
                 Suggested target: <strong>{calculated} kcal/day</strong>
               </p>
@@ -266,7 +298,7 @@ function FoodLogCard({ date, foods, entries, onAdd, onDelete, onGoToFoods }) {
       )}
 
       {foods.length > 0 && (
-        <div className="add-row">
+        <div className="add-food-row">
           <select value={foodId} onChange={(e) => handleFoodChange(e.target.value)} className="food-select">
             {foods.map((f) => (
               <option key={f.id} value={f.id}>
@@ -274,20 +306,38 @@ function FoodLogCard({ date, foods, entries, onAdd, onDelete, onGoToFoods }) {
               </option>
             ))}
           </select>
+
           {selectedFood && (
-            <Stepper
-              value={quantity}
-              onChange={setQuantity}
-              step={selectedFood.referenceUnit === 'g' ? 10 : 0.5}
-              min={0}
-              suffix={selectedFood.referenceUnit}
-              ariaLabel="quantity"
-            />
+            <div className="quantity-quick-buttons">
+              {QUANTITY_FRACTIONS.map((f) => (
+                <button
+                  key={f.label}
+                  type="button"
+                  className="quick-btn"
+                  onClick={() => setQuantity(roundQty(f.value * selectedFood.referenceAmount))}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
           )}
-          <span className="preview-calories">≈ {Math.round(previewCalories)} kcal</span>
-          <button type="button" className="btn btn-primary" onClick={handleAdd} aria-label="Add food entry">
-            + Add
-          </button>
+
+          <div className="add-row">
+            {selectedFood && (
+              <Stepper
+                value={quantity}
+                onChange={setQuantity}
+                step={selectedFood.referenceAmount === 1 ? 0.1 : selectedFood.referenceUnit === 'g' ? 10 : 0.5}
+                min={0}
+                suffix={selectedFood.referenceUnit}
+                ariaLabel="quantity"
+              />
+            )}
+            <span className="preview-calories">≈ {Math.round(previewCalories)} kcal</span>
+            <button type="button" className="btn btn-primary" onClick={handleAdd} aria-label="Add food entry">
+              + Add
+            </button>
+          </div>
         </div>
       )}
     </section>
@@ -350,12 +400,20 @@ function ExerciseLogCard({ entries, onAdd, onDelete }) {
   )
 }
 
-function WeightCard({ date, latestWeight, onAdd, onDeleteLatest }) {
+function WeightCard({ date, latestWeight, goalWeightKg, onAdd, onDeleteLatest, onSetGoalWeight }) {
   const [weight, setWeight] = useState(latestWeight?.weightKg || 12)
+  const [editingGoal, setEditingGoal] = useState(false)
+  const [draftGoal, setDraftGoal] = useState(goalWeightKg || latestWeight?.weightKg || 12)
 
   useEffect(() => {
     if (latestWeight) setWeight(latestWeight.weightKg)
   }, [latestWeight?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (goalWeightKg != null) setDraftGoal(goalWeightKg)
+  }, [goalWeightKg])
+
+  const toGo = latestWeight && goalWeightKg != null ? Number((latestWeight.weightKg - goalWeightKg).toFixed(1)) : null
 
   return (
     <section className="card">
@@ -372,6 +430,41 @@ function WeightCard({ date, latestWeight, onAdd, onDeleteLatest }) {
         <p className="empty-state">No weight recorded yet — log Pablo's first weigh-in below.</p>
       )}
 
+      <p className="calorie-target-line">
+        {goalWeightKg != null ? (
+          <>
+            goal weight {goalWeightKg} kg
+            {toGo != null && toGo !== 0 && ` (${Math.abs(toGo)} kg to ${toGo > 0 ? 'lose' : 'gain'})`}
+            <button type="button" className="link-btn" onClick={() => setEditingGoal(true)}>
+              edit
+            </button>
+          </>
+        ) : (
+          <button type="button" className="link-btn" onClick={() => setEditingGoal(true)}>
+            + set a goal weight
+          </button>
+        )}
+      </p>
+
+      {editingGoal && (
+        <div className="inline-edit-row">
+          <Stepper value={draftGoal} onChange={setDraftGoal} step={0.1} min={0} suffix="kg" ariaLabel="goal weight" />
+          <button
+            type="button"
+            className="btn btn-primary btn-small"
+            onClick={() => {
+              onSetGoalWeight(draftGoal)
+              setEditingGoal(false)
+            }}
+          >
+            Save
+          </button>
+          <button type="button" className="btn btn-small" onClick={() => setEditingGoal(false)}>
+            Cancel
+          </button>
+        </div>
+      )}
+
       <div className="add-row">
         <Stepper value={weight} onChange={setWeight} step={0.1} min={0} suffix="kg" ariaLabel="weight" />
         <button type="button" className="btn btn-primary" onClick={() => onAdd(weight)}>
@@ -383,5 +476,9 @@ function WeightCard({ date, latestWeight, onAdd, onDeleteLatest }) {
 }
 
 function formatQty(n) {
-  return Number.isInteger(n) ? n : Number(n.toFixed(1))
+  return Number.isInteger(n) ? n : Number(n.toFixed(2))
+}
+
+function roundQty(n) {
+  return Number(n.toFixed(2))
 }
