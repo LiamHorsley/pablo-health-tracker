@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import Stepper from './Stepper.jsx'
 import { todayISO, addDays, formatDisplayDate } from './dates.js'
 import { GOALS, suggestedTarget } from './calorieCalc.js'
+import WeekSummaryCard from './WeekSummaryCard.jsx'
 import {
   watchFoods,
   watchSettings,
@@ -58,6 +59,8 @@ export default function TodayView({ uid, onGoToFoods }) {
         latestWeightKg={latestWeight?.weightKg}
         goalWeightKg={settings.goalWeightKg}
       />
+
+      <WeekSummaryCard uid={uid} target={settings.calorieTarget} />
 
       <FoodLogCard
         date={date}

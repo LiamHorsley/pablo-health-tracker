@@ -44,3 +44,15 @@ export function formatShortDate(iso) {
 export function daysAgoISO(n) {
   return addDays(todayISO(), -n)
 }
+
+// Monday-start week boundaries for a given date.
+export function startOfWeek(iso) {
+  const date = fromISO(iso)
+  const day = date.getDay() // 0 = Sunday .. 6 = Saturday
+  const diffToMonday = day === 0 ? -6 : 1 - day
+  return addDays(iso, diffToMonday)
+}
+
+export function endOfWeek(iso) {
+  return addDays(startOfWeek(iso), 6)
+}

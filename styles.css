@@ -366,6 +366,45 @@ select {
   background: var(--danger);
 }
 
+.week-list {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.week-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.week-row.today {
+  background: var(--track);
+  font-weight: 600;
+}
+
+.week-day-value.over {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.week-day-value.muted {
+  color: var(--text-muted);
+}
+
+.week-average {
+  margin: 8px 0 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+}
+
 .inline-edit-row {
   margin-top: 12px;
   display: flex;

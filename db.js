@@ -16,6 +16,14 @@ import {
 } from 'firebase/firestore'
 import { db } from './firebase.js'
 
+// Sorts docs by their createdAt server timestamp, oldest first. A doc whose
+// serverTimestamp() write hasn't been acknowledged yet reads back as null
+// locally — treat that as "just now" so it sorts last, not first.
+function sortByCreatedAt(docs) {
+  const millis = (d) => (d.createdAt && typeof d.createdAt.toMillis === 'function' ? d.createdAt.toMillis() : Infinity)
+  return [...docs].sort((a, b) => millis(a) - millis(b))
+}
+
 // ---------- Foods (reusable food list) ----------
 
 export function foodsCollection(uid) {
@@ -54,9 +62,11 @@ export function foodEntriesCollection(uid) {
 }
 
 export function watchFoodEntriesForDate(uid, date, callback) {
-  const q = query(foodEntriesCollection(uid), where('date', '==', date), orderBy('createdAt'))
+  // Sorted client-side (not via Firestore orderBy) so this doesn't need a
+  // composite index — the collection is tiny (a day's entries) so this is cheap.
+  const q = query(foodEntriesCollection(uid), where('date', '==', date))
   return onSnapshot(q, (snap) => {
-    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+    callback(sortByCreatedAt(snap.docs.map((d) => ({ id: d.id, ...d.data() }))))
   })
 }
 
@@ -95,9 +105,9 @@ export function exerciseEntriesCollection(uid) {
 }
 
 export function watchExerciseEntriesForDate(uid, date, callback) {
-  const q = query(exerciseEntriesCollection(uid), where('date', '==', date), orderBy('createdAt'))
+  const q = query(exerciseEntriesCollection(uid), where('date', '==', date))
   return onSnapshot(q, (snap) => {
-    callback(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
+    callback(sortByCreatedAt(snap.docs.map((d) => ({ id: d.id, ...d.data() }))))
   })
 }
 
