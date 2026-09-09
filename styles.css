@@ -374,6 +374,37 @@ select {
   flex-wrap: wrap;
 }
 
+.target-editor {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.calculator-panel {
+  margin-top: 4px;
+  padding: 12px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.calculator-panel select {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  min-height: 40px;
+}
+
+.calculator-result {
+  margin: 0;
+  font-size: 0.92rem;
+}
+
 /* ---------- Entry lists ---------- */
 
 .entry-list {

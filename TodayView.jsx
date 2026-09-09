@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Stepper from './Stepper.jsx'
 import { todayISO, addDays, formatDisplayDate } from './dates.js'
+import { GOALS, suggestedTarget } from './calorieCalc.js'
 import {
   watchFoods,
   watchSettings,
@@ -46,6 +47,7 @@ export default function TodayView({ uid, onGoToFoods }) {
         totalCalories={totalCalories}
         target={settings.calorieTarget}
         onSetTarget={(v) => setCalorieTarget(uid, v)}
+        latestWeightKg={latestWeight?.weightKg}
       />
 
       <FoodLogCard
@@ -95,13 +97,22 @@ function DateNav({ date, onChange }) {
   )
 }
 
-function CalorieSummaryCard({ totalCalories, target, onSetTarget }) {
+function CalorieSummaryCard({ totalCalories, target, onSetTarget, latestWeightKg }) {
   const [editing, setEditing] = useState(false)
   const [draftTarget, setDraftTarget] = useState(target || 800)
+  const [showCalculator, setShowCalculator] = useState(false)
+  const [calcWeight, setCalcWeight] = useState(latestWeightKg || 12)
+  const [calcGoal, setCalcGoal] = useState('typical')
 
   useEffect(() => {
     if (target != null) setDraftTarget(target)
   }, [target])
+
+  useEffect(() => {
+    if (latestWeightKg != null) setCalcWeight(latestWeightKg)
+  }, [latestWeightKg])
+
+  const calculated = suggestedTarget(calcWeight, calcGoal)
 
   const pct = target ? Math.min(100, Math.round((totalCalories / target) * 100)) : null
   const over = target != null && totalCalories > target
@@ -136,21 +147,52 @@ function CalorieSummaryCard({ totalCalories, target, onSetTarget }) {
       )}
 
       {editing && (
-        <div className="inline-edit-row">
-          <Stepper value={draftTarget} onChange={setDraftTarget} step={10} min={0} suffix="kcal" ariaLabel="daily calorie target" />
-          <button
-            type="button"
-            className="btn btn-primary btn-small"
-            onClick={() => {
-              onSetTarget(draftTarget)
-              setEditing(false)
-            }}
-          >
-            Save
-          </button>
-          <button type="button" className="btn btn-small" onClick={() => setEditing(false)}>
-            Cancel
-          </button>
+        <div className="target-editor">
+          <div className="inline-edit-row">
+            <Stepper value={draftTarget} onChange={setDraftTarget} step={10} min={0} suffix="kcal" ariaLabel="daily calorie target" />
+            <button
+              type="button"
+              className="btn btn-primary btn-small"
+              onClick={() => {
+                onSetTarget(draftTarget)
+                setEditing(false)
+              }}
+            >
+              Save
+            </button>
+            <button type="button" className="btn btn-small" onClick={() => setEditing(false)}>
+              Cancel
+            </button>
+          </div>
+
+          {!showCalculator ? (
+            <button type="button" className="link-btn" onClick={() => setShowCalculator(true)}>
+              or calculate a suggested target from Pablo's weight
+            </button>
+          ) : (
+            <div className="calculator-panel">
+              <label className="mini-field">
+                <span>Pablo's weight</span>
+                <Stepper value={calcWeight} onChange={setCalcWeight} step={0.1} min={0} suffix="kg" ariaLabel="weight for calculation" />
+              </label>
+              <label className="mini-field">
+                <span>Goal</span>
+                <select value={calcGoal} onChange={(e) => setCalcGoal(e.target.value)}>
+                  {GOALS.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <p className="calculator-result">
+                Suggested target: <strong>{calculated} kcal/day</strong>
+              </p>
+              <button type="button" className="btn btn-primary btn-small" onClick={() => setDraftTarget(calculated)}>
+                Use this number
+              </button>
+            </div>
+          )}
         </div>
       )}
     </section>
